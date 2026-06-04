@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.DiaryMapper">
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.Diary">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="photos" property="photos"/>
+        <result column="permission" property="permission"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="avatar"/>
+        <result column="likedByCurrentUser" property="likedByCurrentUser"/>
+        <result column="favoritedByCurrentUser" property="favoritedByCurrentUser"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO diary (user_id, title, content, permission, create_time)
+        VALUES (#{userId}, #{title}, #{content}, #{permission}, now())
+    </insert>
+    <delete id="deleteDiary">
+        DELETE FROM diary
+        WHERE id = #{diaryId}
+    </delete>
+
+    <!-- 公开日记：permission=3 -->
+    <select id="selectPublicDiaries" resultMap="BaseResultMap">
+        SELECT d.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM diary_like WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser,
+               (SELECT COUNT(*) FROM diary_favorite WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS favoritedByCurrentUser
+        FROM diary d
+                 JOIN sys_user u ON d.user_id = u.id
+        WHERE d.permission = 3
+        ORDER BY d.create_time DESC
+    </select>
+
+    <!-- 好友日记：permission=2 且是好友 -->
+    <select id="selectFriendDiaries" resultMap="BaseResultMap">
+        SELECT d.*, u.username, u.avatar,
+        (SELECT COUNT(*) FROM diary_like WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser,
+        (SELECT COUNT(*) FROM diary_favorite WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS favoritedByCurrentUser
+        FROM diary d
+        JOIN sys_user u ON d.user_id = u.id
+        WHERE d.permission = 2
+        AND d.user_id IN
+        <foreach collection="friendIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY d.create_time DESC
+    </select>
+
+    <!-- 我的日记 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT d.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM diary_like WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser,
+               (SELECT COUNT(*) FROM diary_favorite WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS favoritedByCurrentUser
+        FROM diary d
+                 JOIN sys_user u ON d.user_id = u.id
+        WHERE d.user_id = #{userId}
+        ORDER BY d.create_time DESC
+    </select>
+
+    <!-- 日记详情 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT d.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM diary_like WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser,
+               (SELECT COUNT(*) FROM diary_favorite WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS favoritedByCurrentUser
+        FROM diary d
+                 JOIN sys_user u ON d.user_id = u.id
+        WHERE d.id = #{id}
+    </select>
+
+    <!-- 收藏日记 -->
+    <select id="selectFavoritesByUserId" resultMap="BaseResultMap">
+        SELECT d.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM diary_like WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser,
+               (SELECT COUNT(*) FROM diary_favorite WHERE diary_id = d.id AND user_id = #{currentUserId}) > 0 AS favoritedByCurrentUser
+        FROM diary d
+                 JOIN sys_user u ON d.user_id = u.id
+        WHERE d.id IN (SELECT diary_id FROM diary_favorite WHERE user_id = #{userId})
+        ORDER BY d.create_time DESC
+    </select>
+
+    <update id="updateViewCount">
+        UPDATE diary SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+    <update id="updateLikeCount">
+        UPDATE diary SET like_count = like_count + #{increment} WHERE id = #{id}
+    </update>
+    <update id="updateCommentCount">
+        UPDATE diary SET comment_count = comment_count + #{increment} WHERE id = #{id}
+    </update>
+    <update id="updateFavoriteCount">
+        UPDATE diary SET favorite_count = favorite_count + #{increment} WHERE id = #{id}
+    </update>
+    <insert id="insertFavorite">
+        INSERT INTO diary_favorite (diary_id, user_id) VALUES (#{diaryId}, #{userId})
+    </insert>
+    <delete id="deleteFavorite">
+        DELETE FROM diary_favorite WHERE diary_id = #{diaryId} AND user_id = #{userId}
+    </delete>
+    <select id="countFavorite" resultType="int">
+        SELECT COUNT(*) FROM diary_favorite WHERE diary_id = #{diaryId} AND user_id = #{userId}
+    </select>
+    <delete id="deleteById">
+        DELETE FROM diary WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+</mapper>

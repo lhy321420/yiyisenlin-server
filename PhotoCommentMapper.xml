@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PhotoCommentMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.PhotoComment">
+        <id column="id" property="id"/>
+        <result column="photo_id" property="photoId"/>
+        <result column="user_id" property="userId"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="avatar"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO photo_comment (photo_id, user_id, content)
+        VALUES (#{photoId}, #{userId}, #{content})
+    </insert>
+
+    <select id="selectByPhotoId" resultMap="BaseResultMap">
+        SELECT c.*, u.username, u.avatar
+        FROM photo_comment c
+                 JOIN sys_user u ON c.user_id = u.id
+        WHERE c.photo_id = #{photoId}
+        ORDER BY c.create_time ASC
+    </select>
+
+    <delete id="deleteByPhotoId">
+        DELETE FROM photo_comment WHERE photo_id = #{photoId}
+    </delete>
+
+    <!-- 新增：删除评论（只能删除自己的评论） -->
+    <delete id="deleteById">
+        DELETE FROM photo_comment WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+</mapper>

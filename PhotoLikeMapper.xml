@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PhotoLikeMapper">
+    <insert id="insert">
+        INSERT INTO photo_like (photo_id, user_id) VALUES (#{photoId}, #{userId})
+    </insert>
+    <delete id="delete">
+        DELETE FROM photo_like WHERE photo_id = #{photoId} AND user_id = #{userId}
+    </delete>
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM photo_like WHERE photo_id = #{photoId} AND user_id = #{userId}
+    </select>
+</mapper>

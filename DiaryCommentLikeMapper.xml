@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.DiaryCommentLikeMapper">
+    <insert id="insert">
+        INSERT INTO diary_comment_like (comment_id, user_id) VALUES (#{commentId}, #{userId})
+    </insert>
+    <delete id="delete">
+        DELETE FROM diary_comment_like WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </delete>
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM diary_comment_like WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </select>
+    <update id="updateLikeCount">
+        UPDATE diary_comment SET like_count = like_count + #{increment} WHERE id = #{commentId}
+    </update>
+</mapper>

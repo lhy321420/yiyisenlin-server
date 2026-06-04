@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.NotificationMapper">
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.Notification">
+        <id column="id" property="id"/>
+        <result column="to_user_id" property="toUserId"/>
+        <result column="from_user_id" property="fromUserId"/>
+        <result column="type" property="type"/>
+        <result column="module" property="module"/>
+        <result column="target_id" property="targetId"/>
+        <result column="content" property="content"/>
+        <result column="is_read" property="isRead"/>
+        <result column="create_time" property="createTime"/>
+        <result column="from_username" property="fromUsername"/>
+        <result column="from_avatar" property="fromAvatar"/>
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO notification (to_user_id, from_user_id, type, module, target_id, content)
+        VALUES (#{toUserId}, #{fromUserId}, #{type}, #{module}, #{targetId}, #{content})
+    </insert>
+
+    <!-- 新增：批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO notification (to_user_id, from_user_id, type, module, target_id, content)
+        VALUES
+        <foreach collection="list" item="n" separator=",">
+            (#{n.toUserId}, #{n.fromUserId}, #{n.type}, #{n.module}, #{n.targetId}, #{n.content})
+        </foreach>
+    </insert>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT n.*, u.username as from_username, u.avatar as from_avatar
+        FROM notification n
+                 JOIN sys_user u ON n.from_user_id = u.id
+        WHERE n.to_user_id = #{userId}
+        ORDER BY n.create_time DESC
+            LIMIT #{limit}
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM notification WHERE to_user_id = #{userId} AND is_read = 0
+    </select>
+
+    <update id="markAsRead">
+        UPDATE notification SET is_read = 1 WHERE id = #{id}
+    </update>
+
+    <update id="markAllAsRead">
+        UPDATE notification SET is_read = 1 WHERE to_user_id = #{userId}
+    </update>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT n.*, u.username as from_username, u.avatar as from_avatar
+        FROM notification n
+                 JOIN sys_user u ON n.from_user_id = u.id
+        WHERE n.id = #{id}
+    </select>
+</mapper>

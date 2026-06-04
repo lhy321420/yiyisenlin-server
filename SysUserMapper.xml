@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.SysUserMapper">
+
+    <!-- 查询所有用户（原有，不变） -->
+    <select id="listAll" resultType="com.example.demo.entity.SysUser">
+        SELECT id, username, password, phone, birthday, create_time
+        FROM sys_user
+    </select>
+
+    <!-- 根据用户名查询（原有，不变） -->
+    <select id="getByUsername" resultType="com.example.demo.entity.SysUser">
+        SELECT id, username, password, phone, birthday, create_time
+        FROM sys_user
+        WHERE username = #{username}
+    </select>
+
+    <!-- 新增用户（原有，不变） -->
+    <insert id="insert1">
+        INSERT INTO sys_user (username, password, phone, birthday)
+        VALUES (#{username}, #{password}, #{phone}, #{birthday})
+    </insert>
+
+    <!-- 修改用户信息（原有，不变，不包含头像字段） -->
+    <update id="updateInfo">
+        UPDATE sys_user
+        SET username = #{username},
+            phone = #{phone},
+            birthday = #{birthday},
+            description = #{description},
+            mbti = #{mbti},
+            zodiac = #{zodiac}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========== 新增方法（头像功能） ========== -->
+
+    <!-- 根据用户ID查询（包含头像字段） -->
+    <select id="getById" resultType="com.example.demo.entity.SysUser">
+        SELECT id, username, password, phone, birthday, create_time, avatar, description, mbti, zodiac
+        FROM sys_user
+        WHERE id = #{id}
+    </select>
+
+    <!-- 更新用户头像（Base64字符串） -->
+    <update id="updateAvatar">
+        UPDATE sys_user
+        SET avatar = #{avatar}
+        WHERE id = #{id}
+    </update>
+
+
+    <!-- 批量根据ID查询用户信息（用于好友列表） -->
+    <select id="getUsersByIds" resultType="com.example.demo.entity.SysUser">
+        SELECT id, username, avatar, description, mbti, zodiac
+        FROM sys_user
+        WHERE id IN
+        <if test="ids != null and ids.size() > 0">
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="ids == null or ids.size() == 0">
+            (NULL)   <!-- 没有ID时，查询结果为空 -->
+        </if>
+    </select>
+
+    <!-- 搜索用户（按用户名模糊匹配，排除 excludeIds 中的用户） -->
+    <select id="searchUsers" resultType="com.example.demo.entity.SysUser">
+        SELECT id, username, avatar, description, mbti, zodiac
+        FROM sys_user
+        WHERE username LIKE CONCAT('%', #{keyword}, '%')
+        <if test="excludeIds != null and excludeIds.size() > 0">
+            AND id NOT IN
+            <foreach collection="excludeIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        LIMIT 20
+    </select>
+
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PhotoMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.Photo">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="description" property="description"/>
+        <result column="upload_time" property="uploadTime"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="avatar"/>
+        <result column="likedByCurrentUser" property="likedByCurrentUser"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO photo (user_id, image_url, description)
+        VALUES (#{userId}, #{imageUrl}, #{description})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT p.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM photo_like WHERE photo_id = p.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser
+        FROM photo p
+                 JOIN sys_user u ON p.user_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT p.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM photo_like WHERE photo_id = p.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser
+        FROM photo p
+                 JOIN sys_user u ON p.user_id = u.id
+        ORDER BY p.upload_time DESC
+    </select>
+
+    <select id="searchByName" resultMap="BaseResultMap">
+        SELECT p.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM photo_like WHERE photo_id = p.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser
+        FROM photo p
+                 JOIN sys_user u ON p.user_id = u.id
+        WHERE u.username LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY p.upload_time DESC
+    </select>
+
+    <select id="searchByTime" resultMap="BaseResultMap">
+        SELECT p.*, u.username, u.avatar,
+               (SELECT COUNT(*) FROM photo_like WHERE photo_id = p.id AND user_id = #{currentUserId}) > 0 AS likedByCurrentUser
+        FROM photo p
+                 JOIN sys_user u ON p.user_id = u.id
+        WHERE DATE(p.upload_time) = #{date}
+        ORDER BY p.upload_time DESC
+    </select>
+
+    <update id="updateLikeCount">
+        UPDATE photo SET like_count = like_count + #{increment} WHERE id = #{id}
+    </update>
+
+    <update id="updateCommentCount">
+        UPDATE photo SET comment_count = comment_count + #{increment} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM photo WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+</mapper>

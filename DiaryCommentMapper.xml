@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.DiaryCommentMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.DiaryComment">
+        <id column="id" property="id"/>
+        <result column="diary_id" property="diaryId"/>
+        <result column="user_id" property="userId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="reply_to_user_id" property="replyToUserId"/>
+        <result column="content" property="content"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="avatar"/>
+        <result column="likedByCurrentUser" property="likedByCurrentUser"/>
+        <result column="reply_to_username" property="replyToUsername"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO diary_comment (diary_id, user_id, parent_id, reply_to_user_id, content)
+        VALUES (#{diaryId}, #{userId}, #{parentId}, #{replyToUserId}, #{content})
+    </insert>
+
+    <select id="selectByDiaryId" resultType="com.example.demo.entity.DiaryComment">
+        SELECT c.*, u.username
+        FROM diary_comment c
+                 JOIN sys_user u ON c.user_id = u.id
+        WHERE c.diary_id = #{diaryId}
+        ORDER BY c.create_time ASC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM diary_comment WHERE id = #{id}
+    </select>
+
+    <update id="updateLikeCount">
+        UPDATE diary_comment SET like_count = like_count + #{increment} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByDiaryId">
+        DELETE FROM diary_comment WHERE diary_id = #{diaryId}
+    </delete>
+    <delete id="deleteComment">
+        DELETE FROM diary_comment WHERE id = #{commentId}
+    </delete>
+</mapper>
